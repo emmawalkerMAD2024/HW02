@@ -20,11 +20,13 @@ class CalculatorHome extends StatefulWidget {
 }
 
 class _CalculatorHomeState extends State<CalculatorHome> {
-  String _display = '0';
+  String _display = '0'; 
+  String _keystrokes = ''; 
   double _firstOperand = 0;
   double _secondOperand = 0;
   String _operator = '';
   bool _shouldClearDisplay = false;
+  List<String> _history = []; 
 
   void _inputNumber(String number) {
     setState(() {
@@ -34,6 +36,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
       } else {
         _display += number;
       }
+      _keystrokes += number; 
     });
   }
 
@@ -42,12 +45,14 @@ class _CalculatorHomeState extends State<CalculatorHome> {
       _firstOperand = double.tryParse(_display) ?? 0;
       _operator = operator;
       _shouldClearDisplay = true;
+      _keystrokes += ' $operator '; 
     });
   }
 
   void _clear() {
     setState(() {
       _display = '0';
+      _keystrokes = ''; 
       _firstOperand = 0;
       _secondOperand = 0;
       _operator = '';
@@ -58,28 +63,38 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   void _calculate() {
     setState(() {
       _secondOperand = double.tryParse(_display) ?? 0;
+      String result;
 
       switch (_operator) {
         case '+':
-          _display = (_firstOperand + _secondOperand).toString();
+          result = (_firstOperand + _secondOperand).toString();
           break;
         case '-':
-          _display = (_firstOperand - _secondOperand).toString();
+          result = (_firstOperand - _secondOperand).toString();
           break;
         case '*':
-          _display = (_firstOperand * _secondOperand).toString();
+          result = (_firstOperand * _secondOperand).toString();
           break;
         case '/':
           if (_secondOperand != 0) {
-            _display = (_firstOperand / _secondOperand).toString();
+            result = (_firstOperand / _secondOperand).toString();
           } else {
-            _display = 'Error';
+            result = 'Error';
           }
           break;
         default:
-          _display = 'Error';
+          result = 'Error';
           break;
       }
+
+      if (result != 'Error') {
+        _history.add('$_keystrokes = $result');
+      } else {
+        _history.add('$_keystrokes = Error');
+      }
+
+      _display = result;
+      _keystrokes = ''; 
       _shouldClearDisplay = true;
     });
   }
@@ -115,12 +130,37 @@ class _CalculatorHomeState extends State<CalculatorHome> {
           Container(
             padding: EdgeInsets.all(20),
             alignment: Alignment.centerRight,
-            child: Text(
-              _display,
-              style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  _keystrokes,
+                  style: TextStyle(fontSize: 24, color: Colors.grey),
+                ),
+                Text(
+                  _display,
+                  style: TextStyle(fontSize: 48, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
           ),
-          Expanded(child: Divider()),
+          Divider(),
+
+          Expanded(
+            child: ListView.builder(
+              itemCount: _history.length,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(
+                    _history[index],
+                    style: TextStyle(fontSize: 18),
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Buttons layout
           Column(
             children: <Widget>[
               Row(
